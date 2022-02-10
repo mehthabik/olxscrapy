@@ -20,4 +20,15 @@ class OlxscrapItem(scrapy.Item):
     property_type = scrapy.Field()
     bathrooms = scrapy.Field()
     bedrooms = scrapy.Field()
-    pass
+    
+    
+            
+            
+            
+            
+            
+            
+            
+            
+            
+  
