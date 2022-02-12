@@ -19,6 +19,8 @@ NEWSPIDER_MODULE = 'olxscrap.spiders'
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = True
 
+FEED_FORMAT="json"
+FEED_URI="olxscrap.json"
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
 #CONCURRENT_REQUESTS = 32

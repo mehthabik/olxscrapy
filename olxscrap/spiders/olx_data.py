@@ -1,53 +1,43 @@
 import scrapy
 from olxscrap.items import OlxscrapItem
-from scrapy.linkextractors import LinkExtractor
-from scrapy.spiders import CrawlSpider,Rule
+from scrapy.loader import ItemLoader
+from scrapy.crawler import CrawlerProcess
 
 class OlxDataSpider(scrapy.Spider):
     name = 'olx_data'
-    allowed_domains = ['olx.com']
+    allowed_domains = ['www.olx.in']
     start_urls = ['https://www.olx.in/kozhikode_g4058877/for-rent-houses-apartments_c1723/']
     
-    olx_links=LinkExtractor(restrict_css='.fhlkh')
-    olx_next=LinkExtractor(restrict_css='.rui-1JPTg')
+   
+    def start_requests(self):
+         yield scrapy.Request('https://www.olx.in/kozhikode_g4058877/for-rent-houses-apartments_c1723/', callback=self.parse)
     
-    olx_rule=Rule(olx_links,callback='parse_item',follow=False)
-    rule_next=Rule(olx_next,follow=True)
-    
-    rules=(
-        olx_rule,rule_next
-    )
-        
-
     def parse(self, response):
-        property_name=response.css('._3rJ6e::text').get()
-        property_id=response.css('strong::text').get()
-        breadcrumbs=response.css('.rui-10Yqz::text').get()
-        price=response.css('._2xKfz::text').get()
-        image_url=response.css('.UYvAv::text').get()
-        description=response.css('p::text').get()
-        seller_name=response.css('._1oSdP::text').get()
-        location=response.css('._2A3Wa::text').get()
-        property_type=response.css('._3_knn:nth-child(1) ._2vNpt::text').get()
-        bathrooms=response.css('._3_knn:nth-child(3) ._2vNpt::text').get()
-        bedrooms=response.css('._3_knn:nth-child(2) ._2vNpt::text').get()
-        
-        items=OlxscrapItem()        
-        items['property_name']=property_name
-        items['property_id']=property_id
-        items['breadcrumbs']=breadcrumbs
-        items['price']=price
-        items['image_url']=image_url
-        items['description']=description
-        items['seller_name']=seller_name
-        items['location']=location
-        items['property_type']=property_type
-        items['bathrooms']=bathrooms
-        items['bedrooms']=bedrooms
-        
-        yield items
-             
-        
+        all_urls = response.xpath('//ul[@class="rl3f9 _3mXOU"]')
+        for urls in all_urls:
+            items_urls = urls.xpath(".//a[@class='fhlkh']/@href").get()
+            yield response.follow(url=items_urls, callback=self.parse)
+      
+            loader = ItemLoader(item=OlxscrapItem(),selector=urls,response=response)
+            loader.add_xpath("property_name",".//*[@class='container']/text()")
+            loader.add_xpath("property_id",".//*[@class='container']/main/div/div/div/div[5]/div[5]/strong/text()")
+            loader.add_xpath("breadcrumbs",".//*[@class='container']/main/div/div/div/div[1]/text()")
+            loader.add_xpath("price",".//*[@class='container']/main/div/div/div/div[5]/div[1]/div/section/span[1]/text()")
+            loader.add_xpath("image_url",".//a[@class='_2W83m']/@href")
+            loader.add_xpath("description",".//*[@class='container']/main/div/div/div/div[4]/section[1]/div/div/div[2]/text()")
+            loader.add_xpath("seller_name",".//*[@class='container']/main/div/div/div/div[5]/div[2]/div/div/div[2]/div/text()")
+            loader.add_xpath("location",".//*[@class='container']/main/div/div/div/div[5]/div[1]/div/section/div/div[1]/div/span/text()")
+            loader.add_xpath("property_type",".//*[@class='container']/main/div/div/div/div[4]/section[1]/div/div/div[1]/div/div[1]/div/span[2]/text()")
+            loader.add_xpath("bathrooms",".//*[@class='container']/main/div/div/div/div[4]/section[1]/div/div/div[1]/div/div[3]/div/span[2]/text()")
+            loader.add_xpath("bedrooms",".//*[@class='container']/main/div/div/div/div[4]/section[1]/div/div/div[1]/div/div[2]/div/span[2]/text()")
+            yield loader.load_item()
+                             
+        load_more = response.xpath("//a[@class='rui-39-wj rui-3evoE rui-1JPTg']/@href").get()
+        if load_more:
+            yield response.follow(url=load_more, callback=self.parse)
+    
+     
+    
         
         
         
