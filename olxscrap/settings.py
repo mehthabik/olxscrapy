@@ -17,7 +17,7 @@ NEWSPIDER_MODULE = 'olxscrap.spiders'
 #USER_AGENT = 'olxscrap (+http://www.yourdomain.com)'
 
 # Obey robots.txt rules
-ROBOTSTXT_OBEY = True
+ROBOTSTXT_OBEY = False
 
 FEED_FORMAT="json"
 FEED_URI="olxscrap.json"
